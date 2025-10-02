@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { Pool } from 'pg';
 import path from 'node:path';
 import process from 'node:process';
+import multer from 'multer';
 
 const envFile = process.env.ENV_PATH
   ? path.resolve(process.cwd(), process.env.ENV_PATH)
@@ -29,8 +30,27 @@ pool.on('error', (error) => {
 
 const app = express();
 
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'server/uploads/');
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+
+const upload = multer({ storage: storage });
+
 app.use(cors({ origin: '*' }));
 app.use(express.json({ limit: '10mb' }));
+app.use('/uploads', express.static('server/uploads'));
+
+app.post('/upload', upload.single('profile_image'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded.' });
+  }
+  res.json({ filePath: `/uploads/${req.file.filename}` });
+});
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
@@ -64,7 +84,6 @@ const EMPLOYEE_FIELDS = [
 ];
 
 const REQUIRED_FIELDS = [
-  'employee_id',
   'first_name',
   'last_name',
   'email',
@@ -210,6 +229,15 @@ function buildUpdateStatement(payload, id) {
   };
 }
 
+async function getNextEmployeeId(client) {
+  const result = await client.query("SELECT employee_id FROM employees WHERE employee_id ~ '^[0-9]+$' ORDER BY CAST(employee_id AS INTEGER) DESC LIMIT 1");
+  if (result.rows.length === 0) {
+    return '1';
+  }
+  const lastId = parseInt(result.rows[0].employee_id, 10);
+  return (lastId + 1).toString();
+}
+
 app.get('/employees', async (req, res) => {
   const client = await pool.connect();
   try {
@@ -282,13 +310,14 @@ app.post('/employees', async (req, res) => {
     const payload = sanitizeEmployeePayload(req.body ?? {});
     for (const field of REQUIRED_FIELDS) {
       if (!payload[field]) {
-  res.status(400).json({ error: `Majburiy maydon kiritilmadi: ${field}` });
+        res.status(400).json({ error: `Majburiy maydon kiritilmadi: ${field}` });
         return;
       }
     }
     if (!('skills' in payload)) {
       payload.skills = [];
     }
+    payload.employee_id = await getNextEmployeeId(client);
     const statement = buildInsertStatement(payload);
     const result = await client.query(statement.text, statement.values);
     res.status(201).json(mapEmployee(result.rows[0]));
