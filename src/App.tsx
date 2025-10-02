@@ -1,31 +1,33 @@
 ﻿import { useState } from 'react';
 import { useEmployees } from './hooks/useEmployees';
-import { Employee, SearchFilters } from './types/employee';
+import { Employee, SearchFilters, EmployeeFormData } from './types/employee';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import EmployeeList from './components/EmployeeList';
 import SearchEmployees from './components/SearchEmployees';
 import EmployeeForm from './components/EmployeeForm';
 import EmployeeDetail from './components/EmployeeDetail';
+import { AdminUnlockModal } from './components/AdminUnlockModal';
+import { Settings } from './components/Settings';
 
 function App() {
-  const { 
-    employees, 
-    loading, 
-    error, 
-    fetchEmployees, 
-    addEmployee, 
-    updateEmployee, 
-    deleteEmployee 
+  const {
+    employees,
+    loading,
+    error,
+    fetchEmployees,
+    addEmployee,
+    updateEmployee,
+    deleteEmployee
   } = useEmployees();
 
   const [currentView, setCurrentView] = useState('dashboard');
   const [showForm, setShowForm] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [viewingEmployee, setViewingEmployee] = useState<Employee | null>(null);
+  const [isUnlocked, setIsUnlocked] = useState(false);
 
-  const handleAddEmployee = async (data: any) => {
+  const handleAddEmployee = async (data: EmployeeFormData) => {
     try {
       await addEmployee(data);
       setShowForm(false);
@@ -37,7 +39,7 @@ function App() {
     }
   };
 
-  const handleUpdateEmployee = async (data: any) => {
+  const handleUpdateEmployee = async (data: Partial<EmployeeFormData>) => {
     if (!editingEmployee) return;
     try {
       await updateEmployee(editingEmployee.id, data);
@@ -100,6 +102,8 @@ function App() {
             loading={loading}
           />
         );
+      case 'settings':
+        return <Settings />;
       default:
         return <Dashboard employees={employees} loading={loading} />;
     }
@@ -117,6 +121,14 @@ function App() {
         </div>
       </div>
     );
+  }
+
+  const handleUnlock = () => {
+    setIsUnlocked(true);
+  };
+
+  if (!isUnlocked) {
+    return <AdminUnlockModal onUnlock={handleUnlock} />;
   }
 
   return (

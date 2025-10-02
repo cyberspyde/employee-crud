@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { X, Save, User, Mail, MapPin, Briefcase, UploadCloud } from 'lucide-react';
+import { X, Save, User, Mail, MapPin, UploadCloud } from 'lucide-react';
 import { Employee, EmployeeFormData } from '../types/employee';
+import { uploadImage } from '../lib/api';
 
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
 const MAX_IMAGE_SIZE_BYTES = 3 * 1024 * 1024;
@@ -14,7 +15,6 @@ interface EmployeeFormProps {
 
 export default function EmployeeForm({ employee, onSave, onCancel, loading }: EmployeeFormProps) {
   const [formData, setFormData] = useState<EmployeeFormData>({
-    employee_id: '',
     first_name: '',
     last_name: '',
     email: '',
@@ -48,7 +48,6 @@ export default function EmployeeForm({ employee, onSave, onCancel, loading }: Em
   useEffect(() => {
     if (employee) {
       setFormData({
-        employee_id: employee.employee_id,
         first_name: employee.first_name,
         last_name: employee.last_name,
         email: employee.email,
@@ -88,7 +87,6 @@ export default function EmployeeForm({ employee, onSave, onCancel, loading }: Em
   const validateForm = (): boolean => {
     const newErrors: Partial<EmployeeFormData> = {};
 
-    if (!formData.employee_id.trim()) newErrors.employee_id = 'Xodim ID kiritilishi shart';
     if (!formData.first_name.trim()) newErrors.first_name = 'Ism kiritilishi shart';
     if (!formData.last_name.trim()) newErrors.last_name = 'Familiya kiritilishi shart';
     if (!formData.email.trim()) newErrors.email = 'Email kiritilishi shart';
@@ -115,6 +113,7 @@ export default function EmployeeForm({ employee, onSave, onCancel, loading }: Em
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleInputChange = (field: keyof EmployeeFormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
@@ -146,7 +145,7 @@ export default function EmployeeForm({ employee, onSave, onCancel, loading }: Em
     }
   };
 
-  const handleImageFileSelect = (file: File) => {
+  const handleImageFileSelect = async (file: File) => {
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
       setImageError('Ruxsat etilgan formatlar: JPG, PNG yoki WebP.');
       return;
@@ -157,29 +156,23 @@ export default function EmployeeForm({ employee, onSave, onCancel, loading }: Em
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      if (typeof result === 'string') {
-        handleInputChange('profile_image_url', result);
-        setImageError(null);
-      } else {
-        setImageError('Rasmni yuklashda xatolik yuz berdi.');
-      }
-    };
-    reader.onerror = () => {
-      setImageError('Rasmni yuklashda xatolik yuz berdi.');
-    };
-    reader.readAsDataURL(file);
+    setImageError(null);
+    try {
+      const { filePath } = await uploadImage(file);
+      handleInputChange('profile_image_url', filePath);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Rasmni yuklashda xatolik yuz berdi.';
+      setImageError(message);
+    }
   };
 
-  const handleImageInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) {
       setImageInputKey(prev => prev + 1);
       return;
     }
-    handleImageFileSelect(file);
+    await handleImageFileSelect(file);
     setImageInputKey(prev => prev + 1);
   };
 
@@ -213,24 +206,6 @@ export default function EmployeeForm({ employee, onSave, onCancel, loading }: Em
               Asosiy ma'lumotlar
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Xodim ID *
-                </label>
-                <input
-                  type="text"
-                  value={formData.employee_id}
-                  onChange={(e) => handleInputChange('employee_id', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.employee_id ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  placeholder="EMP001"
-                />
-                {errors.employee_id && (
-                  <p className="text-red-600 text-sm mt-1">{errors.employee_id}</p>
-                )}
-              </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Bandlik holati

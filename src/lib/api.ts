@@ -106,5 +106,22 @@ export async function deleteEmployee(id: string): Promise<void> {
   await request<void>(`/employees/${id}`, { method: 'DELETE' });
 }
 
+export async function uploadImage(file: File): Promise<{ filePath: string }> {
+  const formData = new FormData();
+  formData.append('profile_image', file);
+
+  const response = await fetch(`${API_BASE_URL}/upload`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const payload = await response.json();
+    const message = payload?.error ?? "Rasm yuklashda xatolik";
+    throw new Error(message);
+  }
+
+  return response.json();
+}
 
 
