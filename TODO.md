@@ -1,5 +1,5 @@
-1. Picture upload should be from local pc, not some link. GOING
-2. Adding a new employee should not ask for an employee id, it has to be autofilled.
-3. Settings page is empty.
-4. Top right of the page should not display anything, currenty has a round A icon displayed as a profile. We don't need that.
-5. We need admin unlock modal before letting anyone access the page, admin unlock password is "admin123" by default, and can be modified from settings page inside. Modal password doesn't use encryption and saved as clear text.
+1. We need to have dark mode and day mode easy switching, that is fully compatible with tables, all the text, text boxes, searchboxes and everything should be compatible with dark mode and day mode switching. 
+2. Search page table is glitching too much, when I scroll, change some filters table glitches like crazy, isn't fully response, and smooth enough, eyes are really tired and the table is hard to look at. Please make smooth animations + transitions, remove glitching without hiding the problems behind animation.
+3. It says an Adminitrator on the top right of the screen when you login, I want that Administrator component to be removed, we don't need that displayed there.
+4. "Malumotlar sinxronizatsiya qilingan" that information next on top right of the page is probably about database connection, make it dynamic, if there is some problem with database it has to indicate that error, if there is connection trouble with database then indicator should change. If everything is good with database then it shows green indicator.
+5. Admin unlock page is still in English language, translate that into Uzbek.
