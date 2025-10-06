@@ -1,4 +1,4 @@
-﻿import type { Employee, EmployeeFormData, SearchFilters } from '../types/employee';
+﻿import type { Employee, EmployeeFormData, SearchFilters, Experience, Education } from '../types/employee';
 
 const DEFAULT_API_PORT = '4000';
 
@@ -122,6 +122,42 @@ export async function uploadImage(file: File): Promise<{ filePath: string }> {
   }
 
   return response.json();
+}
+
+// ==================== EXPERIENCE API ====================
+
+export async function fetchExperiences(employeeId: string): Promise<Experience[]> {
+  return request<Experience[]>(`/employees/${employeeId}/experiences`);
+}
+
+export async function createExperience(employeeId: string, payload: Omit<Experience, 'id' | 'employee_id' | 'created_at' | 'updated_at'>): Promise<Experience> {
+  return request<Experience>(`/employees/${employeeId}/experiences`, { method: 'POST', body: payload });
+}
+
+export async function updateExperience(employeeId: string, experienceId: string, payload: Omit<Experience, 'id' | 'employee_id' | 'created_at' | 'updated_at'>): Promise<Experience> {
+  return request<Experience>(`/employees/${employeeId}/experiences/${experienceId}`, { method: 'PUT', body: payload });
+}
+
+export async function deleteExperience(employeeId: string, experienceId: string): Promise<void> {
+  await request<void>(`/employees/${employeeId}/experiences/${experienceId}`, { method: 'DELETE' });
+}
+
+// ==================== EDUCATION API ====================
+
+export async function fetchEducation(employeeId: string): Promise<Education[]> {
+  return request<Education[]>(`/employees/${employeeId}/education`);
+}
+
+export async function createEducation(employeeId: string, payload: Omit<Education, 'id' | 'employee_id' | 'created_at' | 'updated_at'>): Promise<Education> {
+  return request<Education>(`/employees/${employeeId}/education`, { method: 'POST', body: payload });
+}
+
+export async function updateEducation(employeeId: string, educationId: string, payload: Omit<Education, 'id' | 'employee_id' | 'created_at' | 'updated_at'>): Promise<Education> {
+  return request<Education>(`/employees/${employeeId}/education/${educationId}`, { method: 'PUT', body: payload });
+}
+
+export async function deleteEducation(employeeId: string, educationId: string): Promise<void> {
+  await request<void>(`/employees/${employeeId}/education/${educationId}`, { method: 'DELETE' });
 }
 
 

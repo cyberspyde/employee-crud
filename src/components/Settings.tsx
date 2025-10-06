@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 
 export function Settings() {
   const [password, setPassword] = useState('');

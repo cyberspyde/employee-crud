@@ -32,7 +32,7 @@ export default function EmployeeDetail({ employee, onClose, onEdit }: EmployeeDe
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
           <div className="flex items-center space-x-4">
             <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center">
@@ -228,11 +228,62 @@ export default function EmployeeDetail({ employee, onClose, onEdit }: EmployeeDe
             </div>
           </div>
 
+          {/* Work Experience */}
+          {employee.experiences && employee.experiences.length > 0 && (
+            <div className="mt-8 bg-gray-50/80 dark:bg-slate-700/50 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                <Briefcase className="w-5 h-5 mr-2" />
+                Ish tajribasi
+              </h3>
+              <div className="space-y-4">
+                {employee.experiences.map((exp, index) => (
+                  <div key={exp.id || index} className="border-l-4 border-blue-500 pl-4">
+                    <h4 className="font-semibold text-gray-900 dark:text-gray-100">{exp.position}</h4>
+                    <p className="text-gray-700 dark:text-gray-300">{exp.company}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      {formatDate(exp.start_date)} - {exp.end_date ? formatDate(exp.end_date) : 'Hozir'}
+                    </p>
+                    {exp.description && (
+                      <p className="text-gray-600 dark:text-gray-400 mt-2">{exp.description}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Education */}
+          {employee.education && employee.education.length > 0 && (
+            <div className="mt-8 bg-gray-50/80 dark:bg-slate-700/50 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                <Star className="w-5 h-5 mr-2" />
+                Ta'lim
+              </h3>
+              <div className="space-y-4">
+                {employee.education.map((edu, index) => (
+                  <div key={edu.id || index} className="border-l-4 border-green-500 pl-4">
+                    <h4 className="font-semibold text-gray-900 dark:text-gray-100">{edu.degree}</h4>
+                    <p className="text-gray-700 dark:text-gray-300">{edu.institution}</p>
+                    {edu.field_of_study && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{edu.field_of_study}</p>
+                    )}
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      {formatDate(edu.start_date)} - {edu.end_date ? formatDate(edu.end_date) : 'Hozir'}
+                    </p>
+                    {edu.description && (
+                      <p className="text-gray-600 dark:text-gray-400 mt-2">{edu.description}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Notes */}
           {employee.notes && (
-            <div className="mt-8 bg-gray-50/80 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Izohlar</h3>
-              <p className="text-gray-700 whitespace-pre-wrap">{employee.notes}</p>
+            <div className="mt-8 bg-gray-50/80 dark:bg-slate-700/50 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Izohlar</h3>
+              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{employee.notes}</p>
             </div>
           )}
 
@@ -266,5 +317,6 @@ export default function EmployeeDetail({ employee, onClose, onEdit }: EmployeeDe
     </div>
   );
 }
+
 
 

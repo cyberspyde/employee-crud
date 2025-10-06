@@ -1,14 +1,15 @@
-﻿import { useState } from 'react';
-import { useEmployees } from './hooks/useEmployees';
-import { Employee, SearchFilters, EmployeeFormData } from './types/employee';
-import Layout from './components/Layout';
-import Dashboard from './components/Dashboard';
-import EmployeeList from './components/EmployeeList';
-import SearchEmployees from './components/SearchEmployees';
-import EmployeeForm from './components/EmployeeForm';
-import EmployeeDetail from './components/EmployeeDetail';
-import { AdminUnlockModal } from './components/AdminUnlockModal';
-import { Settings } from './components/Settings';
+import { useState, useCallback } from "react";
+import { useEmployees } from "./hooks/useEmployees";
+import { Employee, SearchFilters, EmployeeFormData } from "./types/employee";
+import Layout from "./components/Layout";
+import Dashboard from "./components/Dashboard";
+import EmployeeList from "./components/EmployeeList";
+import SearchEmployees from "./components/SearchEmployees";
+import EmployeeForm from "./components/EmployeeForm";
+import EmployeeDetail from "./components/EmployeeDetail";
+import { AdminUnlockModal } from "./components/AdminUnlockModal";
+import { Settings } from "./components/Settings";
+import { ThemeProvider } from "./context/ThemeContext";
 
 function App() {
   const {
@@ -18,73 +19,87 @@ function App() {
     fetchEmployees,
     addEmployee,
     updateEmployee,
-    deleteEmployee
+    deleteEmployee,
   } = useEmployees();
 
-  const [currentView, setCurrentView] = useState('dashboard');
+  const [currentView, setCurrentView] = useState("dashboard");
   const [showForm, setShowForm] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [viewingEmployee, setViewingEmployee] = useState<Employee | null>(null);
   const [isUnlocked, setIsUnlocked] = useState(false);
 
-  const handleAddEmployee = async (data: EmployeeFormData) => {
-    try {
-      await addEmployee(data);
-      setShowForm(false);
-      if (currentView !== 'employees') {
-        setCurrentView('employees');
-      }
-    } catch (error) {
-      console.error("Xodimni qo'shishda xatolik:", error);
-    }
-  };
-
-  const handleUpdateEmployee = async (data: Partial<EmployeeFormData>) => {
-    if (!editingEmployee) return;
-    try {
-      await updateEmployee(editingEmployee.id, data);
-      setEditingEmployee(null);
-      setViewingEmployee(null);
-    } catch (error) {
-      console.error("Xodimni yangilashda xatolik:", error);
-    }
-  };
-
-  const handleDeleteEmployee = async (id: string) => {
-    if (window.confirm("Haqiqatan ham bu xodimni o'chirib tashlamoqchimisiz?")) {
+  const handleAddEmployee = useCallback(
+    async (data: EmployeeFormData) => {
       try {
-        await deleteEmployee(id);
+        await addEmployee(data);
+        setShowForm(false);
+        if (currentView !== "employees") {
+          setCurrentView("employees");
+        }
       } catch (error) {
-        console.error("Xodimni o'chirishda xatolik:", error);
+        console.error("Xodimni qo'shishda xatolik:", error);
       }
-    }
-  };
+    },
+    [addEmployee, currentView],
+  );
 
-  const handleViewChange = (view: string) => {
+  const handleUpdateEmployee = useCallback(
+    async (data: Partial<EmployeeFormData>) => {
+      if (!editingEmployee) return;
+      try {
+        await updateEmployee(editingEmployee.id, data);
+        setEditingEmployee(null);
+        setViewingEmployee(null);
+      } catch (error) {
+        console.error("Xodimni yangilashda xatolik:", error);
+      }
+    },
+    [editingEmployee, updateEmployee],
+  );
+
+  const handleDeleteEmployee = useCallback(
+    async (id: string) => {
+      if (
+        window.confirm("Haqiqatan ham bu xodimni o'chirib tashlamoqchimisiz?")
+      ) {
+        try {
+          await deleteEmployee(id);
+        } catch (error) {
+          console.error("Xodimni o'chirishda xatolik:", error);
+        }
+      }
+    },
+    [deleteEmployee],
+  );
+
+  const handleViewChange = useCallback((view: string) => {
     setCurrentView(view);
-    if (view === 'add') {
+    if (view === "add") {
       setShowForm(true);
     }
-  };
+  }, []);
 
-  const handleSearch = (filters: SearchFilters) => {
-    fetchEmployees(filters);
-  };
+  const handleSearch = useCallback(
+    (filters: SearchFilters) => {
+      fetchEmployees(filters);
+    },
+    [fetchEmployees],
+  );
 
-  const handleEditEmployee = (employee: Employee) => {
+  const handleEditEmployee = useCallback((employee: Employee) => {
     setEditingEmployee(employee);
     setViewingEmployee(null);
-  };
+  }, []);
 
-  const handleViewEmployee = (employee: Employee) => {
+  const handleViewEmployee = useCallback((employee: Employee) => {
     setViewingEmployee(employee);
-  };
+  }, []);
 
   const renderCurrentView = () => {
     switch (currentView) {
-      case 'dashboard':
+      case "dashboard":
         return <Dashboard employees={employees} loading={loading} />;
-      case 'employees':
+      case "employees":
         return (
           <EmployeeList
             employees={employees}
@@ -94,15 +109,18 @@ function App() {
             onView={handleViewEmployee}
           />
         );
-      case 'search':
+      case "search":
         return (
           <SearchEmployees
             employees={employees}
             onFilter={handleSearch}
             loading={loading}
+            onView={handleViewEmployee}
+            onEdit={handleEditEmployee}
+            onDelete={handleDeleteEmployee}
           />
         );
-      case 'settings':
+      case "settings":
         return <Settings />;
       default:
         return <Dashboard employees={employees} loading={loading} />;
@@ -132,40 +150,40 @@ function App() {
   }
 
   return (
-    <div>
-      <Layout currentView={currentView} onViewChange={handleViewChange}>
-        {renderCurrentView()}
-      </Layout>
+    <ThemeProvider>
+      <div>
+        <Layout currentView={currentView} onViewChange={handleViewChange}>
+          {renderCurrentView()}
+        </Layout>
 
-      {/* Add Employee Form */}
-      {showForm && (
-        <EmployeeForm
-          onSave={handleAddEmployee}
-          onCancel={() => setShowForm(false)}
-        />
-      )}
+        {/* Add Employee Form */}
+        {showForm && (
+          <EmployeeForm
+            onSave={handleAddEmployee}
+            onCancel={() => setShowForm(false)}
+          />
+        )}
 
-      {/* Edit Employee Form */}
-      {editingEmployee && (
-        <EmployeeForm
-          employee={editingEmployee}
-          onSave={handleUpdateEmployee}
-          onCancel={() => setEditingEmployee(null)}
-        />
-      )}
+        {/* Edit Employee Form */}
+        {editingEmployee && (
+          <EmployeeForm
+            employee={editingEmployee}
+            onSave={handleUpdateEmployee}
+            onCancel={() => setEditingEmployee(null)}
+          />
+        )}
 
-      {/* Employee Detail View */}
-      {viewingEmployee && (
-        <EmployeeDetail
-          employee={viewingEmployee}
-          onClose={() => setViewingEmployee(null)}
-          onEdit={() => handleEditEmployee(viewingEmployee)}
-        />
-      )}
-    </div>
+        {/* Employee Detail View */}
+        {viewingEmployee && (
+          <EmployeeDetail
+            employee={viewingEmployee}
+            onClose={() => setViewingEmployee(null)}
+            onEdit={() => handleEditEmployee(viewingEmployee)}
+          />
+        )}
+      </div>
+    </ThemeProvider>
   );
 }
 
 export default App;
-
-
