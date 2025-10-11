@@ -6,7 +6,7 @@ This is a **full-stack Employee Management System** with a React/TypeScript fron
 
 **Stack**: React 18 + TypeScript + Vite + TailwindCSS (dark mode) + Express.js + PostgreSQL + Framer Motion
 
-**Key Pattern**: The app uses a **single concurrent dev command** (`npm run dev`) that runs both client (port 5173) and server (port 4000) using `concurrently`.
+**Key Pattern**: The app uses a **single concurrent dev command** (`npm run dev`) that runs both client (port 4183) and server (port 4000) using `concurrently`.
 
 ### Project Structure
 
@@ -29,7 +29,7 @@ database/migrations/   # PostgreSQL schema migrations
 ### Running the Application
 
 - **Development**: `npm run dev` - Runs BOTH client and server concurrently
-- **Client only**: `npm run dev:client` (Vite on port 5173)
+- **Client only**: `npm run dev:client` (Vite on port 4183)
 - **Server only**: `npm run dev:server` (Express on port 4000)
 - **Build**: `npm run build` (Vite production build)
 - **Type check**: `npm run typecheck` (TSC validation without emit)
@@ -184,7 +184,7 @@ When adding new features, maintain this localization pattern.
 
 ## Common Pitfalls
 
-1. **Port conflicts**: Ensure ports 4000 (server) and 5173 (client) are available
+1. **Port conflicts**: Ensure ports 4000 (server) and 4183 (client) are available
 2. **Database connection**: `DATABASE_URL` must be set before starting server (server exits with error if missing)
 3. **Skills array handling**: Always initialize `skills` as empty array `[]`, never null/undefined
 4. **Salary field**: Can be null/undefined - backend converts empty strings to null

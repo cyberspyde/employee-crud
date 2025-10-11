@@ -34,6 +34,7 @@ export interface Employee {
   hire_date: string;
   position: string;
   department: string;
+  department_id?: string;
   salary?: number;
   manager_id?: string;
   employment_status: 'active' | 'inactive' | 'terminated';
@@ -65,6 +66,7 @@ export interface EmployeeFormData {
   hire_date: string;
   position: string;
   department: string;
+  department_id?: string;
   salary?: number;
   employment_status: 'active' | 'inactive' | 'terminated';
   address_street?: string;
@@ -88,6 +90,9 @@ export interface SearchFilters {
   department: string;
   position: string;
   employment_status: string;
+  department_id?: string;
 }
+
+
 
 

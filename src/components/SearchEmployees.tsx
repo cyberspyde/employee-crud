@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback, memo, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   Filter,
@@ -16,6 +15,8 @@ import {
   Trash2,
 } from "lucide-react";
 import { Employee, SearchFilters } from "../types/employee";
+import { useDepartments } from "../hooks/useDepartments";
+import type { DepartmentNode } from "../types/department";
 
 const FILTER_DEBOUNCE_MS = 300;
 
@@ -33,6 +34,25 @@ const statusLabels: Record<Employee["employment_status"], string> = {
   inactive: "Noaktiv",
   terminated: "Ishdan bo'shatilgan",
 };
+
+function flattenDepartmentTree(nodes: DepartmentNode[]): Array<{ id: string; label: string }> {
+  const result: Array<{ id: string; label: string }> = [];
+
+  const visit = (items: DepartmentNode[]) => {
+    items.forEach((node) => {
+      const label = node.path_names && node.path_names.length > 0
+        ? node.path_names.join(" / ")
+        : node.name;
+      result.push({ id: node.id, label });
+      if (node.children && node.children.length > 0) {
+        visit(node.children);
+      }
+    });
+  };
+
+  visit(nodes);
+  return result;
+}
 
 // Memoized Employee Card Component
 const EmployeeCard = memo(
@@ -171,6 +191,7 @@ export default function SearchEmployees({
   const [filters, setFilters] = useState<SearchFilters>({
     query: "",
     department: "all",
+    department_id: undefined,
     position: "all",
     employment_status: "all",
   });
@@ -178,6 +199,15 @@ export default function SearchEmployees({
   const [showAdvanced, setShowAdvanced] = useState(false);
   const skipDebounceRef = useRef(true);
   const onFilterRef = useRef(onFilter);
+  const {
+    tree: departmentTree,
+    loading: departmentsLoading,
+    error: departmentsError,
+  } = useDepartments();
+  const departmentOptions = useMemo(
+    () => flattenDepartmentTree(departmentTree),
+    [departmentTree],
+  );
 
   // Keep onFilter reference up to date without triggering re-renders
   useEffect(() => {
@@ -197,10 +227,22 @@ export default function SearchEmployees({
     return () => window.clearTimeout(timeoutId);
   }, [filters]);
 
-  const departments = useMemo(
-    () => [...new Set(employees.map((emp) => emp.department).filter(Boolean))],
-    [employees],
-  );
+  useEffect(() => {
+    if (
+      filters.department !== "all" &&
+      !departmentOptions.some((option) => option.id === filters.department)
+    ) {
+      const nextFilters: SearchFilters = {
+        ...filters,
+        department: "all",
+        department_id: undefined,
+      };
+      skipDebounceRef.current = true;
+      setFilters(nextFilters);
+      onFilterRef.current(nextFilters);
+    }
+  }, [departmentOptions, filters]);
+
 
   const positions = useMemo(
     () => [...new Set(employees.map((emp) => emp.position).filter(Boolean))],
@@ -224,10 +266,24 @@ export default function SearchEmployees({
     [],
   );
 
+  const handleDepartmentChange = useCallback((value: string) => {
+    setFilters((prevFilters) => {
+      const nextFilters = {
+        ...prevFilters,
+        department: value,
+        department_id: value === "all" ? undefined : value,
+      };
+      skipDebounceRef.current = true;
+      onFilterRef.current(nextFilters);
+      return nextFilters;
+    });
+  }, []);
+
   const clearFilters = useCallback(() => {
     const clearedFilters: SearchFilters = {
       query: "",
       department: "all",
+      department_id: undefined,
       position: "all",
       employment_status: "all",
     };
@@ -339,18 +395,33 @@ export default function SearchEmployees({
                 </label>
                 <select
                   value={filters.department}
-                  onChange={(e) =>
-                    handleFilterChange("department", e.target.value)
-                  }
+                  onChange={(e) => handleDepartmentChange(e.target.value)}
+                  disabled={departmentsLoading}
                   className="w-full rounded-xl border border-slate-200/70 bg-white px-3 py-3 text-sm text-slate-700 shadow-sm transition-[border-color,box-shadow] duration-150 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 dark:border-slate-600 dark:bg-slate-700/50 dark:text-white dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
                 >
                   <option value="all">Barcha bo'limlar</option>
-                  {departments.map((dept) => (
-                    <option key={dept} value={dept}>
-                      {dept}
-                    </option>
-                  ))}
+                  {!departmentsLoading &&
+                    departmentOptions.map((dept) => (
+                      <option key={dept.id} value={dept.id}>
+                        {dept.label}
+                      </option>
+                    ))}
                 </select>
+                {departmentsLoading && (
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Bo'limlar yuklanmoqda...
+                  </p>
+                )}
+                {departmentsError && !departmentsLoading && (
+                  <p className="text-xs text-rose-500">{departmentsError}</p>
+                )}
+                {!departmentsLoading &&
+                  !departmentsError &&
+                  departmentOptions.length === 0 && (
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Bo'limlar mavjud emas
+                    </p>
+                  )}
               </div>
 
               <div className="space-y-2">

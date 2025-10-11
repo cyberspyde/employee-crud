@@ -1,4 +1,4 @@
-import { Users, Search, Plus, Settings, Home, Menu, X } from "lucide-react";
+import { Users, Search, Plus, Settings, Home, Menu, X, GitBranch } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { id: "employees", label: "Xodimlar", icon: Users },
   { id: "search", label: "Qidiruv", icon: Search },
   { id: "add", label: "Xodim qo'shish", icon: Plus },
+  { id: "departments", label: "Bo'limlar", icon: GitBranch },
   { id: "settings", label: "Sozlamalar", icon: Settings },
 ];
 
@@ -309,3 +310,4 @@ export default function Layout({
     </div>
   );
 }
+

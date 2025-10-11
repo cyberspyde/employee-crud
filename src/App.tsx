@@ -7,6 +7,7 @@ import EmployeeList from "./components/EmployeeList";
 import SearchEmployees from "./components/SearchEmployees";
 import EmployeeForm from "./components/EmployeeForm";
 import EmployeeDetail from "./components/EmployeeDetail";
+import DepartmentsView from "./components/DepartmentsView";
 import { AdminUnlockModal } from "./components/AdminUnlockModal";
 import { Settings } from "./components/Settings";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -118,6 +119,14 @@ function App() {
             onView={handleViewEmployee}
             onEdit={handleEditEmployee}
             onDelete={handleDeleteEmployee}
+          />
+        );
+      case "departments":
+        return (
+          <DepartmentsView
+            employees={employees}
+            employeesLoading={loading}
+            refreshEmployees={() => fetchEmployees()}
           />
         );
       case "settings":

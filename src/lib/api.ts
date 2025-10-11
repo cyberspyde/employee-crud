@@ -1,4 +1,11 @@
 ﻿import type { Employee, EmployeeFormData, SearchFilters, Experience, Education } from '../types/employee';
+import type {
+  Department,
+  DepartmentNode,
+  DepartmentInput,
+  DepartmentUpdateInput,
+  DepartmentAssignmentResponse,
+} from '../types/department';
 
 const DEFAULT_API_PORT = '4000';
 
@@ -67,7 +74,9 @@ function buildQueryString(filters?: Partial<SearchFilters>): string {
   if (filters.query) {
     params.set('query', filters.query);
   }
-  if (filters.department && filters.department !== 'all') {
+  if (filters.department_id && filters.department_id !== 'all') {
+    params.set('department_id', filters.department_id);
+  } else if (filters.department && filters.department !== 'all') {
     params.set('department', filters.department);
   }
   if (filters.position && filters.position !== 'all') {
@@ -161,3 +170,44 @@ export async function deleteEducation(employeeId: string, educationId: string): 
 }
 
 
+export async function fetchDepartments(): Promise<Department[]> {
+  return request<Department[]>("/departments");
+}
+
+export async function fetchDepartmentTree(): Promise<DepartmentNode[]> {
+  return request<DepartmentNode[]>("/departments/tree");
+}
+
+export async function createDepartment(payload: DepartmentInput): Promise<Department> {
+  return request<Department>("/departments", { method: "POST", body: payload });
+}
+
+export async function updateDepartment(
+  id: string,
+  payload: DepartmentUpdateInput,
+): Promise<Department> {
+  return request<Department>(`/departments/${id}`, { method: "PUT", body: payload });
+}
+
+export async function deleteDepartment(id: string): Promise<void> {
+  await request<void>(`/departments/${id}`, { method: "DELETE" });
+}
+
+export async function assignEmployeesToDepartment(
+  departmentId: string,
+  employeeIds: string[],
+): Promise<DepartmentAssignmentResponse> {
+  return request<DepartmentAssignmentResponse>(
+    `/departments/${departmentId}/employees`,
+    { method: "POST", body: { employeeIds } },
+  );
+}
+
+export async function removeEmployeeFromDepartment(
+  departmentId: string,
+  employeeId: string,
+): Promise<Employee> {
+  return request<Employee>(`/departments/${departmentId}/employees/${employeeId}`, {
+    method: "DELETE",
+  });
+}
